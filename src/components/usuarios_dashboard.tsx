@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 // import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 // import { Progress } from '@/components/ui/progress';
 
-import "../assets/css/usuariosdashboard.css"; // Mantener tu CSS personalizado
+// import "../assets/css/usuariosdashboard.css"; // Mantener tu CSS personalizado
 
 // --- Tipos de Datos (Interfaces) ---
 // Usar `interface` es una buena práctica para definir tipos de objetos

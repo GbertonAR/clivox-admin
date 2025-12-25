@@ -1,13 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 
-// Importaciones relativas a tus componentes de UI (ej. Shadcn UI)
-// Asegúrate de que las rutas sean correctas, si están en './ui/' es porque están en el mismo nivel
-// o un subdirectorio directo de donde está MiPerfil.
-import { Card, CardContent } from "./ui/Card";
-import { Button } from "./ui/Button";
+import { Card, CardContent } from "./ui/card";
+import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { Select, SelectItem } from "./ui/select"; // Este es tu componente Select personalizado
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "./ui/select";
 
 interface Provincia {
   id: number;
@@ -17,172 +20,135 @@ interface Provincia {
 interface Municipio {
   id: number;
   nombre: string;
-  id_provincia: number; // Asegúrate de que este campo coincida con tu backend
+  id_provincia: number;
 }
 
 const MiPerfil = () => {
-  // Estados para los campos del formulario
-  const [nombre, setNombre] = useState<string>('');
-  const [apellido, setApellido] = useState<string>('');
-  const [email, setEmail] = useState<string>('');
-  const [celular, setCelular] = useState<string>('');
-  const [cuil, setCuil] = useState<string>('');
-  const [provinciaId, setProvinciaId] = useState<number | ''>(''); // Usar '' para el valor inicial "selecciona"
-  const [municipioId, setMunicipioId] = useState<number | ''>(''); // Usar '' para el valor inicial "selecciona"
-
-  // Estados para los datos de provincias y municipios
+  const [nombre, setNombre] = useState("");
+  const [apellido, setApellido] = useState("");
+  const [email, setEmail] = useState("");
+  const [celular, setCelular] = useState("");
+  const [cuil, setCuil] = useState("");
+  const [provinciaId, setProvinciaId] = useState<number | "">("");
+  const [municipioId, setMunicipioId] = useState<number | "">("");
   const [provincias, setProvincias] = useState<Provincia[]>([]);
   const [municipios, setMunicipios] = useState<Municipio[]>([]);
-
-  // Estados para la carga y errores
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState<boolean>(false); // Para el botón de guardar
+  const [isSaving, setIsSaving] = useState(false);
 
-  // --- useEffect para cargar los datos del usuario (al cargar el componente) ---
+  /* ---------------- CARGA DE DATOS DEL USUARIO ---------------- */
   useEffect(() => {
     const fetchUserData = async () => {
       setIsLoading(true);
-      setError(null);
       try {
-        // Asume que tienes un endpoint para obtener los datos del perfil del usuario actual
-        // Podrías necesitar enviar un token de autenticación aquí
-        const res = await fetch('http://localhost:8000/api/usuarios/perfil'); // Ajusta este endpoint si es diferente
-        if (!res.ok) {
-          throw new Error(`Error al cargar datos del perfil: ${res.statusText}`);
-        }
+        const res = await fetch("http://localhost:8000/api/usuarios/perfil");
+        if (!res.ok)
+          throw new Error(`Error al cargar perfil: ${res.statusText}`);
         const data = await res.json();
-        setNombre(data.nombre || '');
-        setApellido(data.apellido || '');
-        setEmail(data.email || '');
-        setCelular(data.celular || '');
-        setCuil(data.cuil || '');
-        setProvinciaId(data.id_provincia || '');
-        setMunicipioId(data.id_municipio || '');
+        setNombre(data.nombre || "");
+        setApellido(data.apellido || "");
+        setEmail(data.email || "");
+        setCelular(data.celular || "");
+        setCuil(data.cuil || "");
+        setProvinciaId(data.id_provincia || "");
+        setMunicipioId(data.id_municipio || "");
       } catch (err: any) {
-        console.error("Error al cargar datos del usuario:", err);
-        setError(err.message || "No se pudieron cargar los datos del perfil.");
+        console.error(err);
+        setError(
+          err.message || "No se pudieron cargar los datos del perfil."
+        );
       } finally {
         setIsLoading(false);
       }
     };
-
     fetchUserData();
-  }, []); // Se ejecuta solo una vez al montar el componente
+  }, []);
 
-  // --- useEffect para cargar provincias ---
+  /* ---------------- CARGA DE PROVINCIAS ---------------- */
   useEffect(() => {
     const fetchProvincias = async () => {
-      setError(null);
       try {
-        const res = await fetch('http://localhost:8000/api/provincias'); // Asegurate que este endpoint existe en tu backend
-        if (!res.ok) {
+        const res = await fetch("http://localhost:8000/api/provincias");
+        if (!res.ok)
           throw new Error(`Error al cargar provincias: ${res.statusText}`);
-        }
         const data: Provincia[] = await res.json();
         setProvincias(data);
       } catch (err: any) {
-        console.error("Error al cargar provincias:", err);
+        console.error(err);
         setError(err.message || "No se pudieron cargar las provincias.");
       }
     };
-
     fetchProvincias();
-  }, []); // Se ejecuta solo una vez al montar el componente
+  }, []);
 
-  // --- useEffect para cargar municipios (cuando cambia la provinciaId) ---
+  /* ---------------- CARGA DE MUNICIPIOS SEGÚN PROVINCIA ---------------- */
   useEffect(() => {
-    setMunicipios([]); // Limpiar municipios al cambiar la provincia
-    setMunicipioId(''); // Resetear el municipio seleccionado
-
-    if (provinciaId !== '' && provinciaId !== null) { // Solo cargar si hay una provinciaId válida
+    setMunicipios([]);
+    setMunicipioId("");
+    if (provinciaId !== "") {
       const fetchMunicipios = async () => {
-        setError(null);
         try {
-          // Asegurate que este endpoint existe y acepta el parámetro provincia_id
-          const res = await fetch(`http://localhost:8000/api/municipios?provincia_id=${provinciaId}`);
-          if (!res.ok) {
+          const res = await fetch(
+            `http://localhost:8000/api/municipios?provincia_id=${provinciaId}`
+          );
+          if (!res.ok)
             throw new Error(`Error al cargar municipios: ${res.statusText}`);
-          }
           const data: Municipio[] = await res.json();
           setMunicipios(data);
         } catch (err: any) {
-          console.error("Error al cargar municipios:", err);
+          console.error(err);
           setError(err.message || "No se pudieron cargar los municipios.");
         }
       };
       fetchMunicipios();
     }
-  }, [provinciaId]); // Dependencia: se ejecuta cuando provinciaId cambia
+  }, [provinciaId]);
 
-  // --- Manejador del cambio de provincia ---
-  const handleProvinciaChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    // Convertir a número si el valor no es un string vacío
-    const value = event.target.value === '' ? '' : parseInt(event.target.value);
-    setProvinciaId(value);
-  };
-
-  // --- Manejador del cambio de municipio ---
-  const handleMunicipioChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    // Convertir a número si el valor no es un string vacío
-    const value = event.target.value === '' ? '' : parseInt(event.target.value);
-    setMunicipioId(value);
-  };
-
-  // --- Manejador del envío del formulario ---
+  /* ---------------- GUARDAR PERFIL ---------------- */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    setError(null);
-
-    const datos = {
-      nombre,
-      apellido,
-      email,
-      celular,
-      cuil,
-      // Asegurarse de enviar null o undefined si no se seleccionó nada,
-      // dependiendo de lo que espere tu backend para campos opcionales.
-      id_provincia: provinciaId === '' ? null : provinciaId,
-      id_municipio: municipioId === '' ? null : municipioId
-    };
-
     try {
-      const res = await fetch('http://localhost:8000/api/usuarios/actualizar', { // Ajusta este endpoint
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          // 'Authorization': `Bearer ${tuTokenDeAuth}` // Si usas autenticación
-        },
-        body: JSON.stringify(datos)
+      const res = await fetch("http://localhost:8000/api/usuarios/actualizar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombre,
+          apellido,
+          email,
+          celular,
+          cuil,
+          id_provincia: provinciaId === "" ? null : provinciaId,
+          id_municipio: municipioId === "" ? null : municipioId,
+        }),
       });
 
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.message || `Error al actualizar datos: ${res.statusText}`);
+        throw new Error(
+          errorData.message || `Error al actualizar datos: ${res.statusText}`
+        );
       }
 
-      // const result = await res.json(); // Si tu backend devuelve algo
       alert("Datos actualizados correctamente");
     } catch (err: any) {
-      console.error("Error al guardar:", err);
+      console.error(err);
       setError(err.message || "No se pudieron guardar los cambios.");
     } finally {
       setIsSaving(false);
     }
   };
 
-  // --- Renderizado ---
-  if (isLoading) {
+  /* ---------------- RENDER ---------------- */
+  if (isLoading)
     return (
       <div className="p-6 max-w-3xl mx-auto text-center">
-        <p>Cargando perfil...</p>
-        {/* Aquí podrías añadir un spinner o un componente de carga */}
+        Cargando perfil...
       </div>
     );
-  }
 
-  if (error && !isLoading) {
+  if (error) {
     return (
       <div className="p-6 max-w-3xl mx-auto text-center text-red-600">
         <p>Error: {error}</p>
@@ -197,13 +163,13 @@ const MiPerfil = () => {
       <Card>
         <CardContent>
           <form onSubmit={handleSubmit} className="grid gap-4">
+            {/* Datos básicos */}
             <div>
               <Label htmlFor="nombre">Nombre</Label>
               <Input
                 id="nombre"
                 value={nombre}
-                onChange={e => setNombre(e.target.value)}
-                required
+                onChange={(e) => setNombre(e.target.value)}
                 disabled={isSaving}
               />
             </div>
@@ -212,8 +178,7 @@ const MiPerfil = () => {
               <Input
                 id="apellido"
                 value={apellido}
-                onChange={e => setApellido(e.target.value)}
-                required
+                onChange={(e) => setApellido(e.target.value)}
                 disabled={isSaving}
               />
             </div>
@@ -223,8 +188,7 @@ const MiPerfil = () => {
                 id="email"
                 type="email"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
+                onChange={(e) => setEmail(e.target.value)}
                 disabled={isSaving}
               />
             </div>
@@ -233,7 +197,7 @@ const MiPerfil = () => {
               <Input
                 id="celular"
                 value={celular}
-                onChange={e => setCelular(e.target.value)}
+                onChange={(e) => setCelular(e.target.value)}
                 disabled={isSaving}
               />
             </div>
@@ -242,44 +206,62 @@ const MiPerfil = () => {
               <Input
                 id="cuil"
                 value={cuil}
-                onChange={e => setCuil(e.target.value)}
+                onChange={(e) => setCuil(e.target.value)}
                 placeholder="Ej: 20XXXXXXXXX9"
                 disabled={isSaving}
               />
             </div>
+
+            {/* Select Provincia */}
             <div>
-              <Label htmlFor="provincia">Provincia</Label>
-              {/* CORRECCIÓN: Usar onChange en lugar de onValueChange */}
+              <Label>Provincia</Label>
               <Select
-                id="provincia"
-                value={provinciaId?.toString() || ''} // Controlado por el estado
-                onChange={handleProvinciaChange} // Manejador de cambio
-                disabled={isSaving || provincias.length === 0}
+                value={provinciaId?.toString() || ""}
+                onValueChange={(value) =>
+                  setProvinciaId(value === "" ? "" : parseInt(value))
+                }
               >
-                <SelectItem value="">Selecciona una provincia</SelectItem> {/* Opción por defecto */}
-                {provincias.map(p => (
-                  <SelectItem key={p.id} value={p.id.toString()}>{p.nombre}</SelectItem>
-                ))}
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecciona una provincia" />
+                </SelectTrigger>
+                <SelectContent>
+                  {/* 🟢 Cambió → se quitó el <SelectItem value=""> */}
+                  {provincias.map((p) => (
+                    <SelectItem key={p.id} value={p.id.toString()}>
+                      {p.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </div>
+
+            {/* Select Municipio */}
             <div>
-              <Label htmlFor="municipio">Municipio</Label>
-              {/* CORRECCIÓN: Usar onChange en lugar de onValueChange */}
+              <Label>Municipio</Label>
               <Select
-                id="municipio"
-                value={municipioId?.toString() || ''} // Controlado por el estado
-                onChange={handleMunicipioChange} // Manejador de cambio
-                disabled={isSaving || municipios.length === 0 || provinciaId === ''} // Deshabilitar si no hay provincia seleccionada o no hay municipios
+                value={municipioId?.toString() || ""}
+                onValueChange={(value) =>
+                  setMunicipioId(value === "" ? "" : parseInt(value))
+                }
               >
-                <SelectItem value="">Selecciona un municipio</SelectItem> {/* Opción por defecto */}
-                {municipios.map(m => (
-                  <SelectItem key={m.id} value={m.id.toString()}>{m.nombre}</SelectItem>
-                ))}
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecciona un municipio" />
+                </SelectTrigger>
+                <SelectContent>
+                  {/* 🟢 Cambió → se quitó el <SelectItem value=""> */}
+                  {municipios.map((m) => (
+                    <SelectItem key={m.id} value={m.id.toString()}>
+                      {m.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </div>
+
+            {/* Botón guardar */}
             <div className="flex justify-end mt-4">
               <Button type="submit" disabled={isSaving}>
-                {isSaving ? 'Guardando...' : 'Guardar cambios'}
+                {isSaving ? "Guardando..." : "Guardar cambios"}
               </Button>
             </div>
           </form>

@@ -1,19 +1,67 @@
 "use client"
 
-import type React from "react"
+// import type React from "react"
 
-import { useState } from "react"
-import { Button } from "./ui/Button"
-// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/Card"
-import { Input } from "./ui/input"
-import { Label } from "./ui/label"
-import { Textarea } from "./ui/textarea"
-import { Badge } from "./ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
-import { Video, Users, Calendar, Shield, Sparkles, Copy, RefreshCw, UserPlus, Crown, Mic, Eye, X } from "lucide-react"
+// import { useState } from "react"
+// import { Button } from "@/components/ui/button"
+// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+// import { Input } from "@/components/ui/input"
+// import { Label } from "@/components/ui/label"
+// import { Textarea } from "@/components/ui/textarea"
+// import { Badge } from "@/components/ui/badge"
+// // import { useToast } from "@/components/ui/use-toast";
+// // import { useToast } from "../components/ui/use-toast"
+// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+// import { Video, Users, Calendar, Shield, Sparkles, Copy, RefreshCw, UserPlus, Crown, Mic, Eye, X } from "lucide-react"
+// import React, { useState, useEffect, useRef } from "react";
+// import { useNavigate, useSearchParams } from "react-router-dom";
+// import { Shield, ArrowLeft, RefreshCw, CheckCircle, XCircle, Loader2, Sparkles, Key, Zap, Eye, Lock, Cpu, Wifi } from "lucide-react";
 
-import "../assets/css/instructor_dashboard.css"
+import React, { useState } from "react"; // Asegúrate de que useState esté aquí
+
+// import React, { useState, useEffect, useRef } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+
+import {
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Input,
+  Label,
+  Textarea,
+  Badge,
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui";
+
+import {
+  Video,
+  Users,
+  Calendar,
+  Shield,
+  Sparkles,
+  Copy,
+  RefreshCw,
+  UserPlus,
+  Crown,
+  Mic,
+  Eye,
+  X,
+  ArrowLeft,
+  CheckCircle,
+  XCircle,
+  Loader2,
+  Key,
+  Zap,
+  Lock,
+  Cpu,
+  Wifi,
+} from "lucide-react";
+
 
 interface Participante {
   id: string
@@ -24,6 +72,7 @@ interface Participante {
 }
 
 interface SalaData {
+  id: string
   nombre: string
   descripcion: string
   groupCallId: string
@@ -43,6 +92,7 @@ interface SalaData {
 
 export default function CrearSalaForm() {
   const [salaData, setSalaData] = useState<SalaData>({
+    id: "",
     nombre: "",
     descripcion: "",
     groupCallId: generateUUID(),
@@ -59,6 +109,7 @@ export default function CrearSalaForm() {
       modoEspera: true,
     },
   })
+
 
   const [nuevoParticipante, setNuevoParticipante] = useState({
     nombre: "",
@@ -131,11 +182,66 @@ export default function CrearSalaForm() {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log("Datos de la sala:", salaData)
-    // Aquí enviarías los datos al backend para crear la sala en Azure
-  }
+// const { toast } = useToast();  
+
+  const [mensaje, setMensaje] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [messageType, setMessageType] = useState<'success' | 'error' | null>(null);
+  const navigate = useNavigate();
+
+const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMensaje("");
+    setLoading(true);
+    setMessageType(null);
+    console.log("Datos de la sala:", salaData);
+
+
+    try {
+        console.log("Enviando solicitud para crear sala...");
+        const response = await fetch("http://localhost:8000/sala_crear", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(salaData),
+    });
+        console.log("Estado de la respuesta 0:", response.status, response.statusText);
+        const data = await response.json();
+
+        console.log("Respuesta del servidor:", data);
+
+         if (response.ok) {
+            setMensaje("Sala creada exitosamente.");
+            setMessageType('success');
+            setTimeout(() => {
+              navigate(`/validacodigo?email=${encodeURIComponent(email)}`);
+            }, 1500);
+            window.history.back();
+        } else {
+            setMensaje(data.error || "Sala no registrada o error en el servidor.");
+            setMessageType('error');
+        }
+      } catch (error) {
+        console.error("Error en la solicitud:", error);
+      }
+    };
+
+//     if (response.ok) {
+//       console.log("Estado de la respuesta 1:", response.status, response.statusText);
+//       // Mostrar notificación de éxito ultra-creativa
+//       toast({
+//         type: 'success',
+//         title: 'Sala Neural Creada Exitosamente',
+//         description: `La sesión ha sido registrada en la matriz cuántica y está lista para iniciar.`,
+//         duration: 6000
+//       });
+//       window.history.back();
+//     } else {
+//       console.error("Error al crear sala:", data.detail);
+//     }
+//   } catch (error) {
+//     console.error("Error en la solicitud:", error);
+//   }
+// };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-4">
@@ -324,7 +430,7 @@ export default function CrearSalaForm() {
                   className="px-3 py-2 border border-gray-200 rounded-md focus:border-orange-500 focus:ring-orange-500"
                 >
                   <option value="participante">Participante</option>
-                  <option value="presentador">Presentador</option>
+                  <option value="presentador">Instructor</option>
                   <option value="moderador">Moderador</option>
                 </select>
                 <Button type="button" onClick={agregarParticipante} className="bg-orange-500 hover:bg-orange-600">
