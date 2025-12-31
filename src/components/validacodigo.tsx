@@ -245,7 +245,7 @@ const ValidarCodigo: React.FC = () => {
                         </div>
 
                         <input
-                          ref={(el) => inputRefs.current[index] = el}
+                          ref={(el) => { inputRefs.current[index] = el }}
                           type="text"
                           maxLength={1}
                           value={char}
@@ -328,16 +328,16 @@ const ValidarCodigo: React.FC = () => {
             {/* Display de mensajes ultra-futurista */}
             {mensaje && (
               <div className={`mt-8 p-6 rounded-2xl flex items-start space-x-4 slide-up-cosmic relative overflow-hidden ${messageType === 'success'
-                  ? 'bg-gradient-to-r from-emerald-500/10 via-green-500/10 to-teal-500/10 border border-emerald-500/30'
-                  : 'bg-gradient-to-r from-red-500/10 via-rose-500/10 to-pink-500/10 border border-red-500/30'
+                ? 'bg-gradient-to-r from-emerald-500/10 via-green-500/10 to-teal-500/10 border border-emerald-500/30'
+                : 'bg-gradient-to-r from-red-500/10 via-rose-500/10 to-pink-500/10 border border-red-500/30'
                 }`}>
                 {/* Efecto de pulso de fondo */}
                 <div className={`absolute inset-0 ${messageType === 'success' ? 'bg-emerald-500/5' : 'bg-red-500/5'
                   } animate-pulse`}></div>
 
                 <div className={`p-3 rounded-xl ${messageType === 'success'
-                    ? 'bg-gradient-to-br from-emerald-400 to-green-500'
-                    : 'bg-gradient-to-br from-red-400 to-rose-500'
+                  ? 'bg-gradient-to-br from-emerald-400 to-green-500'
+                  : 'bg-gradient-to-br from-red-400 to-rose-500'
                   } shadow-neon-sm relative z-10`}>
                   {messageType === 'success' ? (
                     <CheckCircle className="w-6 h-6 text-white" />
