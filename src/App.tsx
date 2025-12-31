@@ -30,6 +30,7 @@ import VerSalas from "./components/SalasPendientes";
 import CrearSalaForm from "./components/crear-sala-form"
 import Organizaciones from "./components/Organizaciones";
 import AIExamDesigner from "./components/AIExamDesigner";
+import CourseManagement from "./pages/CourseManagement";
 
 // export default function Home() {
 //   return <CrearSalaForm />
@@ -64,6 +65,7 @@ function App() {
         <Route path="/salas-pendientes" element={<VerSalas />} />
         <Route path="/organizaciones" element={<Organizaciones />} />
         <Route path="/examen-ia" element={<AIExamDesigner />} />
+        <Route path="/gestion-cursos" element={<CourseManagement />} />
         {/* Otras rutas del dashboard */}
         {/* <Route path="/crear-sala" element={<CrearSalaForm />} /> */}
 
